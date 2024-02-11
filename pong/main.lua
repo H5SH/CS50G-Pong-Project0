@@ -50,6 +50,9 @@ VIRTUAL_HEIGHT = 243
 -- paddle movement speed
 PADDLE_SPEED = 200
 
+aiPlayer1 = false
+aiPlayer2 = false
+
 --[[
     Called just once at the beginning of the game; used to set up
     game objects, variables, etc. and prepare the game world.
@@ -135,6 +138,7 @@ end
     across system hardware.
 ]]
 function love.update(dt)
+
     if gameState == 'serve' then
         -- before switching to play, initialize ball's velocity based
         -- on player who last scored
@@ -229,39 +233,47 @@ function love.update(dt)
         end
     end
 
-    --
+    if love.keyboard.isDown("1") then
+        if aiPlayer1 then
+            aiPlayer1 = false
+        else
+            aiPlayer1 = true
+        end
+    elseif  love.keyboard.isDown("2") then
+        if aiPlayer2 then
+            aiPlayer2 = false
+        else
+            aiPlayer2 = true
+        end
+    end
     -- paddles can move no matter what state we're in
     --
     -- player 1
-    -- player1.y = ball.y
-    if love.keyboard.isDown('w') then
-        player1.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('s') then
-        player1.dy = PADDLE_SPEED
+    if aiPlayer1 then
+        player1.y = ball.y
     else
-        player1.dy = 0
+        if love.keyboard.isDown('w') then
+            player1.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown('s') then
+            player1.dy = PADDLE_SPEED
+        else
+            player1.dy = 0
+        end
     end
 
     -- player 2
-    -- The unbeatable AI
-    player2.y = ball.y
-    -- The User Controled 
-    -- if love.keyboard.isDown('up') then
-    --     player2.dy = -PADDLE_SPEED
-    -- elseif love.keyboard.isDown('down') then
-    --     player2.dy = PADDLE_SPEED
-    -- else
-    --     player2.dy = 0
-    -- end
-
-    -- maybe Beatble
-    -- if player2.y > ball.y then
-    --     player2.dy = -PADDLE_SPEED
-    -- elseif player2.y <= ball.y then
-    --     player2.dy = PADDLE_SPEED
-    -- else
-    --     player2.dy = 0
-    -- end
+    if aiPlayer2 then
+        player2.y = ball.y
+    else
+        -- The User Controled 
+        if love.keyboard.isDown('up') then
+            player2.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown('down') then
+            player2.dy = PADDLE_SPEED
+        else
+            player2.dy = 0
+        end
+    end
 
     -- update our ball based on its DX and DY only if we're in play state;
     -- scale the velocity by dt so movement is framerate-independent
@@ -344,12 +356,24 @@ function love.draw()
         love.graphics.setFont(smallFont)
         love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
     end
+    if aiPlayer1 == false or aiPlayer2 == false then
+        love.graphics.setColor(0, 1, 0, 1)
+        if aiPlayer2 == true then
+            love.graphics.print('Press 1 for Player 1 Ai' , VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH / 2)
+        elseif aiPlayer1 == true then
+            love.graphics.print('Press 2 for Player 2 Ai' , VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH / 2)
+        else
+            love.graphics.print("Press 1 for Player 1 Ai And 2 for Player 2 Ai", VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH / 2)
+        end
+        love.graphics.setColor(1,1,1,1)
+    end
+    -- love.graphics.print("player2: ".. tostring(aiPlayer2), VIRTUAL_HEIGHT/2 + 2, VIRTUAL_WIDTH/2 + 2)
+    -- love.graphics.print("player2: ".. tostring(aiPlayer1), VIRTUAL_HEIGHT/2 + 10, VIRTUAL_WIDTH/2 + 10)
 
-    -- show the score before ball is rendered so it can move over the text
     displayScore()
-
-    player1:render()
-    player2:render()
+    -- show the score before ball is rendered so it can move over the text
+    player1:render(aiPlayer1)
+    player2:render(aiPlayer2)
     ball:render()
 
     -- display FPS for debugging; simply comment out to remove
